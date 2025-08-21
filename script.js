@@ -87,16 +87,16 @@ console.log("!!!!Script loaded!!!!");
     const generateSummary = () => {
         const summaryContainer = $('#summaryContent').empty();
 
-         console.log("starttt");
+        console.log("starttt");
 
         const format = (value) => `₹${value.toLocaleString('en-IN')}`;
         const addItem = (label, value) => summaryContainer.append(`<div class="item"><span>${label}</span><span class="fw-semibold">${value}</span></div>`);
 
 
-        if (estimatorData.websiteType.value){
+        if (estimatorData.websiteType.value) {
             console.log("Website type selected:", estimatorData.websiteType);
             addItem(`Website Type: ${estimatorData.websiteType.value}`, format(estimatorData.websiteType.cost));
-}
+        }
         if (estimatorData.pageCount.value)
             addItem(`Page Count: ${estimatorData.pageCount.value}`, format(estimatorData.pageCount.cost));
 
@@ -109,7 +109,7 @@ console.log("!!!!Script loaded!!!!");
         $('#summaryTotal').text(format(estimatorData.totalCost));
         console.log("Total cost set to:", estimatorData.totalCost);
 
-        
+
         // Simple estimated timeline 
         let weeks = estimatorData.totalCost > 80000 ? 10 : estimatorData.totalCost > 40000 ? 8 : estimatorData.totalCost > 20000 ? 6 : 4;
         $('#summaryTimeline').text(`${weeks - 2}-${weeks} weeks`);
@@ -187,28 +187,80 @@ console.log("!!!!Script loaded!!!!");
         });
 
         // Handler for form submission with Bootstrap 5 validation
-        $('#quoteForm').on('submit', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (this.checkValidity() === false) {
-                $(this).addClass('was-validated');
-                return;
+        // $('#quoteForm').on('submit', function (event) {
+        //     event.preventDefault();
+        //     event.stopPropagation();
+        //     if (this.checkValidity() === false) {
+        //         $(this).addClass('was-validated');
+        //         return;
+        //     }
+
+        //     estimatorData.clientInfo = {
+        //         name: $('#name').val(),
+        //         phone: $('#phone').val(),
+        //         email: $('#email').val(),
+        //     };
+        //     saveToLocalStorage();
+        //     console.log("Quote Submitted:", estimatorData);
+
+        //     // EmailJS or webhook integration can be added here
+
+        //     currentStep = steps.length - 1; // Go to thank you page
+        //     updateUI();
+        // });
+
+
+        /////////////////////////////////////////////////////////////////////
+        // REPLACE your existing $('#quoteForm').on('submit', ...) with this:
+        // Handler for form submission with Bootstrap 5 validation
+        // REPLACE your existing $('#quoteForm').on('submit', ...) function with this:
+
+$('#quoteForm').on('submit', function (event) {
+    event.preventDefault(); // Stop the form from reloading the page
+    event.stopPropagation();
+    
+    if (this.checkValidity() === false) {
+        $(this).addClass('was-validated');
+        return;
+    }
+
+    // Get the latest form data
+    estimatorData.clientInfo = {
+        name: $('#name').val(),
+        phone: $('#phone').val(),
+        email: $('#email').val(),
+    };
+
+    console.log("Attempting to submit data to server:", estimatorData);
+
+    // Send the data to the PHP script
+    $.ajax({
+        type: "POST",
+        url: "submit_quote.php", // Your PHP file
+        data: JSON.stringify(estimatorData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            // THIS PART ONLY RUNS IF THE SERVER RESPONDS WITH SUCCESS (200 OK)
+            console.log("Server responded successfully:", response);
+            if (response.success) {
+                // Now that we know it's saved, go to the thank you page
+                currentStep = steps.length - 1;
+                updateUI();
+                localStorage.removeItem('estimatorData');
+            } else {
+                // If the server says there was a problem
+                alert("Submission failed: " + response.message);
             }
-
-            estimatorData.clientInfo = {
-                name: $('#name').val(),
-                phone: $('#phone').val(),
-                email: $('#email').val(),
-            };
-            saveToLocalStorage();
-            console.log("Quote Submitted:", estimatorData);
-
-            // EmailJS or webhook integration can be added here
-
-            currentStep = steps.length - 1; // Go to thank you page
-            updateUI();
-        });
-
+        },
+        error: function (xhr, status, error) {
+            // THIS PART RUNS IF THE SERVER CAN'T BE REACHED OR CRASHES (404, 500)
+            console.error("Server Error:", xhr.responseText);
+            alert("A critical server error occurred. Please check the console (F12) for details.");
+        }
+    });
+});
+        /////////////////////////////////////////////////////////////////////////////
         // Initial UI setup on page load
         updateUI();
     });
