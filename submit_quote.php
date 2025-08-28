@@ -3,7 +3,7 @@
 $servername = "localhost"; // Usually "localhost"
 $username = "root"; // Default username for XAMPP
 $password = ""; // Default password for XAMPP is empty
-$dbname = "ardent_estimator"; // The database name you created
+$dbname = "ardent_estimator"; // The database name i created
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);

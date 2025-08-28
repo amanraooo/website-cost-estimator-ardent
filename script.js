@@ -32,11 +32,11 @@ console.log("!!!!Script loaded!!!!");
         estimatorData.totalCost = total;
 
         //testttt
-        console.log("Website Type Cost:", estimatorData.websiteType.cost || 0);
-        console.log("Page Count Cost:", estimatorData.pageCount.cost || 0);
-        console.log("Additional Services:", estimatorData.additionalServices);
-        console.log("Additional Features:", estimatorData.additionalFeatures);
-        console.log("Total Estimated Cost:", total);
+        // console.log("Website Type Cost:", estimatorData.websiteType.cost || 0);
+        // console.log("Page Count Cost:", estimatorData.pageCount.cost || 0);
+        // console.log("Additional Services:", estimatorData.additionalServices);
+        // console.log("Additional Features:", estimatorData.additionalFeatures);
+        // console.log("Total Estimated Cost:", total);
 
         $('#totalCost').text(`₹${total.toLocaleString('en-IN')}`);
         saveToLocalStorage();
@@ -69,15 +69,14 @@ console.log("!!!!Script loaded!!!!");
     window.nextStep = function () {
         if (currentStep < steps.length - 1) {
             currentStep++;
-            console.log("Next step:", currentStep);
+            //console.log("Next step:", currentStep);
             updateUI();
         }
     };
     window.prevStep = function () {
         if (currentStep > 0) {
             currentStep--;
-            console.log("Previous step:", currentStep);
-
+            //console.log("Previous step:", currentStep);
 
             updateUI();
         }
@@ -87,14 +86,14 @@ console.log("!!!!Script loaded!!!!");
     const generateSummary = () => {
         const summaryContainer = $('#summaryContent').empty();
 
-        console.log("starttt");
+        //console.log("starttt");
 
         const format = (value) => `₹${value.toLocaleString('en-IN')}`;
         const addItem = (label, value) => summaryContainer.append(`<div class="item"><span>${label}</span><span class="fw-semibold">${value}</span></div>`);
 
 
         if (estimatorData.websiteType.value) {
-            console.log("Website type selected:", estimatorData.websiteType);
+            //console.log("Website type selected:", estimatorData.websiteType);
             addItem(`Website Type: ${estimatorData.websiteType.value}`, format(estimatorData.websiteType.cost));
         }
         if (estimatorData.pageCount.value)
@@ -107,7 +106,7 @@ console.log("!!!!Script loaded!!!!");
             estimatorData.additionalFeatures.forEach(f => addItem(f.value, format(f.cost)));
 
         $('#summaryTotal').text(format(estimatorData.totalCost));
-        console.log("Total cost set to:", estimatorData.totalCost);
+        //console.log("Total cost set to:", estimatorData.totalCost);
 
 
         // Simple estimated timeline 
@@ -187,6 +186,7 @@ console.log("!!!!Script loaded!!!!");
         });
 
         // Handler for form submission with Bootstrap 5 validation
+        //saves to localstorage
         // $('#quoteForm').on('submit', function (event) {
         //     event.preventDefault();
         //     event.stopPropagation();
@@ -211,55 +211,53 @@ console.log("!!!!Script loaded!!!!");
 
 
         /////////////////////////////////////////////////////////////////////
-        // REPLACE your existing $('#quoteForm').on('submit', ...) with this:
-        // Handler for form submission with Bootstrap 5 validation
-        // REPLACE your existing $('#quoteForm').on('submit', ...) function with this:
 
-$('#quoteForm').on('submit', function (event) {
-    event.preventDefault(); // Stop the form from reloading the page
-    event.stopPropagation();
-    
-    if (this.checkValidity() === false) {
-        $(this).addClass('was-validated');
-        return;
-    }
+        // saves to database 
+        $('#quoteForm').on('submit', function (event) {
+            event.preventDefault(); // Stop the form from reloading the page
+            event.stopPropagation();
 
-    // Get the latest form data
-    estimatorData.clientInfo = {
-        name: $('#name').val(),
-        phone: $('#phone').val(),
-        email: $('#email').val(),
-    };
-
-    console.log("Attempting to submit data to server:", estimatorData);
-
-    // Send the data to the PHP script
-    $.ajax({
-        type: "POST",
-        url: "submit_quote.php", // Your PHP file
-        data: JSON.stringify(estimatorData),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (response) {
-            // THIS PART ONLY RUNS IF THE SERVER RESPONDS WITH SUCCESS (200 OK)
-            console.log("Server responded successfully:", response);
-            if (response.success) {
-                // Now that we know it's saved, go to the thank you page
-                currentStep = steps.length - 1;
-                updateUI();
-                localStorage.removeItem('estimatorData');
-            } else {
-                // If the server says there was a problem
-                alert("Submission failed: " + response.message);
+            if (this.checkValidity() === false) {
+                $(this).addClass('was-validated');
+                return;
             }
-        },
-        error: function (xhr, status, error) {
-            // THIS PART RUNS IF THE SERVER CAN'T BE REACHED OR CRASHES (404, 500)
-            console.error("Server Error:", xhr.responseText);
-            alert("A critical server error occurred. Please check the console (F12) for details.");
-        }
-    });
-});
+
+            // Get the latest form data
+            estimatorData.clientInfo = {
+                name: $('#name').val(),
+                phone: $('#phone').val(),
+                email: $('#email').val(),
+            };
+
+            console.log("Attempting to submit data to server:", estimatorData);
+
+            // Send the data to the PHP script
+            $.ajax({
+                type: "POST",
+                url: "submit_quote.php", // PHP file
+                data: JSON.stringify(estimatorData),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    // THIS PART ONLY RUNS IF THE SERVER RESPONDS WITH SUCCESS (200 OK)
+                    console.log("Server responded successfully:", response);
+                    if (response.success) {
+                        // Now that we know it's saved, go to the thank you page
+                        currentStep = steps.length - 1;
+                        updateUI();
+                        localStorage.removeItem('estimatorData');
+                    } else {
+                        // If the server says there was a problem
+                        alert("Submission failed: " + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // THIS PART RUNS IF THE SERVER CAN'T BE REACHED OR CRASHES (404, 500)
+                    console.error("Server Error:", xhr.responseText);
+                    alert("A critical server error occurred. Please check the console (F12) for details.");
+                }
+            });
+        });
         /////////////////////////////////////////////////////////////////////////////
         // Initial UI setup on page load
         updateUI();
